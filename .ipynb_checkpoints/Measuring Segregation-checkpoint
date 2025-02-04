@@ -1,0 +1,129 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "157ba230-61e5-4469-90bc-866816adaa7b",
+   "metadata": {},
+   "source": [
+    "## Measuring Segregation\n",
+    "Explore racial segregation in America. Calculate the Index of Dissimilarity, and important measure of segregation. Learn about and use Metropolitan Statistical Areas, and important geography for urban research. Study segregation changes over time in Chicago."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bd265cc3-97c6-44b6-850f-44357b3402ea",
+   "metadata": {},
+   "source": [
+    "#### Calculating D for One State\n",
+    "Compute the Index of Dissimilarity for the state of Georgia. The formula for the Index of Dissimilarity is:\n",
+    "\n",
+    "$$D = \\frac{1}{2}\\sum{\\left\\lvert \\frac{a}{A} - \\frac{b}{B} \\right\\rvert}$$\n",
+    "\n",
+    "In this case, Group A will be Whites, Group B will be Blacks. $ a $ and $ b $ represent the White and Black population of the small geography (tracts), while $ A $ and $ B $ represent the White and Black population of the larger, containing geography (e.g. Georgia, postal code = GA, FIPS code = 13)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "id": "8df63b8a-b629-46f6-921c-64af5fd3cc25",
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "NameError",
+     "evalue": "name 'tracts' is not defined",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[1;31mNameError\u001b[0m                                 Traceback (most recent call last)",
+      "Cell \u001b[1;32mIn[39], line 6\u001b[0m\n\u001b[0;32m      3\u001b[0m b \u001b[38;5;241m=\u001b[39m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mblack\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m      5\u001b[0m \u001b[38;5;66;03m# Extract Georgia tracts\u001b[39;00m\n\u001b[1;32m----> 6\u001b[0m ga_tracts \u001b[38;5;241m=\u001b[39m \u001b[43mtracts\u001b[49m[tracts[\u001b[38;5;124m'\u001b[39m\u001b[38;5;124mstate\u001b[39m\u001b[38;5;124m'\u001b[39m]\u001b[38;5;241m==\u001b[39m\u001b[38;5;124m'\u001b[39m\u001b[38;5;124m13\u001b[39m\u001b[38;5;124m'\u001b[39m]\n\u001b[0;32m      8\u001b[0m \u001b[38;5;66;03m# Print sums of Black and White residents of Georgia\u001b[39;00m\n\u001b[0;32m      9\u001b[0m \u001b[38;5;28mprint\u001b[39m(ga_tracts[[w,b]]\u001b[38;5;241m.\u001b[39msum())\n",
+      "\u001b[1;31mNameError\u001b[0m: name 'tracts' is not defined"
+     ]
+    }
+   ],
+   "source": [
+    "# Define convenience variables to hold column names\n",
+    "w = \"white\"\n",
+    "b = \"black\"\n",
+    "\n",
+    "# Extract Georgia tracts\n",
+    "ga_tracts = tracts[tracts['state']=='13']\n",
+    "\n",
+    "# Print sums of Black and White residents of Georgia\n",
+    "print(ga_tracts[[w,b]].sum())\n",
+    "\n",
+    "# Calculate Index of Dissimilarity and print rounded result\n",
+    "w_total = ga_tracts[w].sum()\n",
+    "b_total = ga_tracts[b].sum()\n",
+    "D = 0.5 * sum(abs(ga_tracts[w] / w_total - ga_tracts[b] / b_total))\n",
+    "\n",
+    "print(\"Dissimilarity (Georgia):\", round(D, 3))  "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "641fbbe4-0175-48e7-8f24-21b294b12328",
+   "metadata": {},
+   "source": [
+    "#### Calculating D in a Loop\n",
+    "Is Georgia's Index of Dissimilarity of 0.544 high or low? Let's compare it to Illinois (FIPS = 17), home of Chicago.\n",
+    "\n",
+    "In this exercise we will use a loop to calculate $ D$ for all states, then compare Georgia and Illinois."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e345e3c0-0cb6-4545-9cd0-3480d8cab325",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Get list of state FIPS Codes\n",
+    "states = list(tracts[\"state\"].unique())\n",
+    "\n",
+    "state_D = {}  # Initialize dictionary as collector\n",
+    "for state in states:\n",
+    "    # Filter by state\n",
+    "    tmp = tracts[tracts['state']==state]\n",
+    "    \n",
+    "    # Add Index of Dissimilarity to Dictionary\n",
+    "    w_tot = tmp[w].sum()\n",
+    "    b_tot =tmp[b].sum()\n",
+    "    state_D[state] = 0.5 * sum(abs(tmp[w]/w_tot-tmp[b]/b_tot))\n",
+    "\n",
+    "# Print D for Georgia (FIPS = 13) and Illinois (FIPS = 17)    \n",
+    "print(\"Georgia D =\", round(state_D[\"13\"], 3))\n",
+    "print(\"Illinois D =\", round(state_D[\"17\"], 3))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1f5c703c-b4a0-4f4e-a74a-f82630918847",
+   "metadata": {},
+   "source": [
+    "#### Calculating D Using Grouping in Pandas\n",
+    "Performing a calculation over subsets of a DataFrame is so common that `pandas` gives us an alternative to doing it in a loop, the `groupby` method. In the sample code, `groupby` is used first to group tracts by state, i.e. those rows having the same value in the `\"state\"` column. The `sum()` method is applied by group to the columns."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.10"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
